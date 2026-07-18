@@ -5,42 +5,42 @@ struct LocationDeniedView: View {
     var body: some View {
         ZStack {
             // Same background as compass
-            RadialGradient(
-                colors: [
-                    QiblatiTheme.primaryGreen,
-                    QiblatiTheme.secondaryGreen
-                ],
-                center: .center,
-                startRadius: 0,
-                endRadius: 400
-            )
-            .ignoresSafeArea()
+            QiblatiTheme.backgroundGradient
+                .ignoresSafeArea()
 
             IslamicPatternBackground(opacity: 0.07)
                 .ignoresSafeArea()
 
-            VStack(spacing: 32) {
+            VStack(spacing: 30) {
                 Spacer()
 
                 // Islamic compass icon (gold circle with location slash)
                 ZStack {
                     Circle()
-                        .strokeBorder(QiblatiTheme.goldGradient, lineWidth: 3)
-                        .frame(width: 100, height: 100)
+                        .fill(QiblatiTheme.abyssGreen.opacity(0.6))
+                        .frame(width: 120, height: 120)
+                    Circle()
+                        .strokeBorder(QiblatiTheme.goldGradient, lineWidth: 2.5)
+                        .frame(width: 112, height: 112)
                     Image(systemName: "location.slash.fill")
                         .font(.system(size: 44))
                         .foregroundStyle(QiblatiTheme.goldGradient)
                 }
+                .shadow(color: QiblatiTheme.gold.opacity(0.2), radius: 18)
 
                 // Title
-                Text("قبلتي")
-                    .font(QiblatiTheme.titleFont(size: 42))
-                    .foregroundStyle(QiblatiTheme.goldGradient)
+                VStack(spacing: 8) {
+                    Text("قبلتي")
+                        .font(QiblatiTheme.titleFont(size: 42))
+                        .foregroundStyle(QiblatiTheme.goldGradient)
+
+                    OrnamentalDivider(width: 160)
+                }
 
                 // Message
                 Text("يحتاج تطبيق قبلتي إلى موقعك\nلتحديد اتجاه القبلة")
                     .font(QiblatiTheme.arabicBoldFont(size: 20))
-                    .foregroundColor(.white)
+                    .foregroundColor(QiblatiTheme.ivory)
                     .multilineTextAlignment(.center)
                     .lineSpacing(8)
 
@@ -53,14 +53,16 @@ struct LocationDeniedView: View {
                 Button(action: openSettings) {
                     Text("فتح الإعدادات")
                         .font(QiblatiTheme.arabicBoldFont(size: 18))
-                        .foregroundStyle(QiblatiTheme.goldGradient)
+                        .foregroundColor(QiblatiTheme.abyssGreen)
                         .padding(.horizontal, 40)
                         .padding(.vertical, 14)
                         .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .stroke(QiblatiTheme.gold, lineWidth: 1.5)
+                            Capsule(style: .continuous)
+                                .fill(QiblatiTheme.goldGradient)
+                                .shadow(color: QiblatiTheme.gold.opacity(0.35), radius: 10, y: 4)
                         )
                 }
+                .buttonStyle(.plain)
 
                 Spacer()
             }

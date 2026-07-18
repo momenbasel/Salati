@@ -11,51 +11,87 @@ struct KaabaIndicator: View {
         ZStack {
             // Kaaba icon pinned to ring edge
             ZStack {
-                // Glow circle
+                // Halo
                 Circle()
-                    .fill(isOnQibla ? Color.green.opacity(0.2) : QiblatiTheme.gold.opacity(0.1))
-                    .frame(width: 40, height: 40)
-                    .shadow(color: isOnQibla ? .green.opacity(0.7) : QiblatiTheme.gold.opacity(0.3), radius: isOnQibla ? 14 : 5)
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                (isOnQibla ? QiblatiTheme.qiblaGreen : QiblatiTheme.gold).opacity(isOnQibla ? 0.4 : 0.22),
+                                .clear,
+                            ],
+                            center: .center,
+                            startRadius: 2,
+                            endRadius: 26
+                        )
+                    )
+                    .frame(width: 52, height: 52)
 
-                // Kaaba body
-                ZStack {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(QiblatiTheme.goldGradient)
-                        .frame(width: 24, height: 28)
+                // Kaaba body — kiswa black with gold band
+                VStack(spacing: 0) {
+                    ZStack {
+                        // Cube
+                        RoundedRectangle(cornerRadius: 2.5, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color(red: 0.16, green: 0.16, blue: 0.17),
+                                        Color(red: 0.05, green: 0.05, blue: 0.06),
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .frame(width: 24, height: 26)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 2.5, style: .continuous)
+                                    .strokeBorder(QiblatiTheme.gold.opacity(0.5), lineWidth: 0.6)
+                            )
 
-                    Rectangle()
-                        .fill(Color.black.opacity(0.3))
-                        .frame(width: 24, height: 6)
-                        .offset(y: -6)
+                        // Gold band (hizam)
+                        Rectangle()
+                            .fill(QiblatiTheme.goldGradient)
+                            .frame(width: 24, height: 4.5)
+                            .offset(y: -5)
 
-                    Rectangle()
-                        .fill(QiblatiTheme.brightGold)
-                        .frame(width: 20, height: 1.5)
-                        .offset(y: -4)
+                        // Door
+                        RoundedRectangle(cornerRadius: 1.2, style: .continuous)
+                            .fill(QiblatiTheme.goldVerticalGradient)
+                            .frame(width: 5, height: 9)
+                            .offset(x: 6, y: 4.5)
+                    }
 
-                    RoundedRectangle(cornerRadius: 1.5)
-                        .fill(Color.black.opacity(0.4))
-                        .frame(width: 8, height: 10)
-                        .offset(y: 6)
-
-                    RoundedRectangle(cornerRadius: 1.5)
-                        .stroke(QiblatiTheme.brightGold.opacity(0.7), lineWidth: 0.8)
-                        .frame(width: 8, height: 10)
-                        .offset(y: 6)
+                    // Pedestal
+                    Trapezoid()
+                        .fill(QiblatiTheme.goldVerticalGradient)
+                        .frame(width: 30, height: 5)
                 }
-                .shadow(color: isOnQibla ? .green.opacity(0.8) : QiblatiTheme.gold.opacity(0.4), radius: isOnQibla ? 16 : 5)
+                .shadow(color: isOnQibla ? QiblatiTheme.qiblaGreen.opacity(0.8) : .black.opacity(0.6),
+                        radius: isOnQibla ? 12 : 4, y: 2)
 
-                // Green ring when aligned
+                // Green alignment ring
                 if isOnQibla {
                     Circle()
-                        .stroke(Color.green.opacity(0.6), lineWidth: 2)
-                        .frame(width: 40, height: 40)
-                        .shadow(color: .green.opacity(0.7), radius: 8)
+                        .stroke(QiblatiTheme.qiblaGreen.opacity(0.7), lineWidth: 1.8)
+                        .frame(width: 46, height: 46)
+                        .shadow(color: QiblatiTheme.qiblaGreen.opacity(0.7), radius: 8)
                 }
             }
             .offset(y: -ringRadius)
         }
         .animation(.easeInOut(duration: 0.4), value: isOnQibla)
+    }
+}
+
+/// Slightly tapered base under the Kaaba cube.
+private struct Trapezoid: Shape {
+    func path(in rect: CGRect) -> Path {
+        Path { p in
+            p.move(to: CGPoint(x: rect.minX + 4, y: rect.minY))
+            p.addLine(to: CGPoint(x: rect.maxX - 4, y: rect.minY))
+            p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+            p.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+            p.closeSubpath()
+        }
     }
 }
 

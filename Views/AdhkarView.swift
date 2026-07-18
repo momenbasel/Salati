@@ -13,11 +13,8 @@ struct AdhkarView: View {
 
     var body: some View {
         ZStack {
-            RadialGradient(
-                colors: [QiblatiTheme.primaryGreen, QiblatiTheme.secondaryGreen],
-                center: .center, startRadius: 0, endRadius: 440
-            )
-            .ignoresSafeArea()
+            QiblatiTheme.backgroundGradient
+                .ignoresSafeArea()
 
             IslamicPatternBackground(opacity: 0.05)
                 .ignoresSafeArea()
@@ -38,7 +35,7 @@ struct AdhkarView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 100)
                 }
             }
         }
@@ -48,15 +45,22 @@ struct AdhkarView: View {
     }
 
     private var headerSection: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 6) {
             HStack {
                 Button {
                     showReminderSheet = true
                 } label: {
-                    Image(systemName: "bell.badge.fill")
-                        .font(.system(size: 20))
-                        .foregroundColor(QiblatiTheme.gold)
+                    ZStack {
+                        Circle()
+                            .fill(QiblatiTheme.gold.opacity(0.1))
+                            .overlay(Circle().strokeBorder(QiblatiTheme.hairline, lineWidth: 0.8))
+                        Image(systemName: "bell.badge.fill")
+                            .font(.system(size: 15))
+                            .foregroundStyle(QiblatiTheme.goldGradient)
+                    }
+                    .frame(width: 38, height: 38)
                 }
+                .buttonStyle(.plain)
 
                 Spacer()
 
@@ -67,17 +71,11 @@ struct AdhkarView: View {
                 Spacer()
 
                 // Balance the layout
-                Color.clear.frame(width: 20, height: 20)
+                Color.clear.frame(width: 38, height: 38)
             }
             .padding(.horizontal, 20)
 
-            HStack(spacing: 8) {
-                Rectangle().fill(QiblatiTheme.goldGradient).frame(height: 1)
-                EightPointedStar().fill(QiblatiTheme.goldGradient).frame(width: 10, height: 10)
-                Rectangle().fill(QiblatiTheme.goldGradient).frame(height: 1)
-            }
-            .padding(.horizontal, 40)
-            .opacity(0.7)
+            OrnamentalDivider(width: 200)
         }
         .padding(.top, 16)
         .padding(.bottom, 8)
@@ -99,7 +97,7 @@ struct AdhkarView: View {
                                 VStack(alignment: .trailing) {
                                     Text(s("تذكير أذكار الصباح", "Morning Adhkar Reminder"))
                                         .font(QiblatiTheme.arabicBoldFont(size: 16))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(QiblatiTheme.ivory)
                                     Text(s("🌅 أذكار الصباح يومياً", "🌅 Daily morning adhkar"))
                                         .font(QiblatiTheme.arabicFont(size: 13))
                                         .foregroundColor(QiblatiTheme.gold.opacity(0.7))
@@ -142,14 +140,7 @@ struct AdhkarView: View {
                         }
                     }
                     .padding(16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(QiblatiTheme.primaryGreen.opacity(0.5))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .strokeBorder(QiblatiTheme.gold.opacity(0.15))
-                            )
-                    )
+                    .qiblatiCard(cornerRadius: 16)
 
                     // Evening reminder
                     VStack(spacing: 12) {
@@ -159,7 +150,7 @@ struct AdhkarView: View {
                                 VStack(alignment: .trailing) {
                                     Text(s("تذكير أذكار المساء", "Evening Adhkar Reminder"))
                                         .font(QiblatiTheme.arabicBoldFont(size: 16))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(QiblatiTheme.ivory)
                                     Text(s("🌙 أذكار المساء يومياً", "🌙 Daily evening adhkar"))
                                         .font(QiblatiTheme.arabicFont(size: 13))
                                         .foregroundColor(QiblatiTheme.gold.opacity(0.7))
@@ -202,14 +193,7 @@ struct AdhkarView: View {
                         }
                     }
                     .padding(16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(QiblatiTheme.primaryGreen.opacity(0.5))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .strokeBorder(QiblatiTheme.gold.opacity(0.15))
-                            )
-                    )
+                    .qiblatiCard(cornerRadius: 16)
 
                     Spacer()
                 }
@@ -220,7 +204,7 @@ struct AdhkarView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(s("تم", "Done")) { showReminderSheet = false }
-                        .foregroundColor(QiblatiTheme.gold)
+                        .foregroundColor(QiblatiTheme.brightGold)
                 }
             }
         }
@@ -233,27 +217,31 @@ struct AdhkarView: View {
                 ForEach(AdhkarData.Category.allCases) { category in
                     let isSelected = selectedCategory == category
                     Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                             selectedCategory = category
                         }
+                        #if os(iOS)
+                        UISelectionFeedbackGenerator().selectionChanged()
+                        #endif
                     } label: {
                         HStack(spacing: 6) {
                             Image(systemName: category.icon)
-                                .font(.system(size: 13))
+                                .font(.system(size: 12, weight: .semibold))
                             Text(category.rawValue)
                                 .font(QiblatiTheme.arabicFont(size: 13))
                         }
                         .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 9)
                         .background(
-                            Capsule()
-                                .fill(isSelected ? QiblatiTheme.gold.opacity(0.25) : QiblatiTheme.secondaryGreen.opacity(0.6))
+                            Capsule(style: .continuous)
+                                .fill(isSelected ? QiblatiTheme.goldGradient : LinearGradient(colors: [QiblatiTheme.surfaceGreen.opacity(0.7)], startPoint: .top, endPoint: .bottom))
                         )
                         .overlay(
-                            Capsule()
-                                .strokeBorder(isSelected ? QiblatiTheme.gold.opacity(0.6) : QiblatiTheme.gold.opacity(0.2), lineWidth: 1)
+                            Capsule(style: .continuous)
+                                .strokeBorder(isSelected ? Color.clear : QiblatiTheme.hairline, lineWidth: 0.8)
                         )
-                        .foregroundColor(isSelected ? QiblatiTheme.brightGold : QiblatiTheme.gold.opacity(0.7))
+                        .foregroundColor(isSelected ? QiblatiTheme.abyssGreen : QiblatiTheme.gold.opacity(0.75))
+                        .shadow(color: isSelected ? QiblatiTheme.gold.opacity(0.35) : .clear, radius: 6, y: 2)
                     }
                     .buttonStyle(.plain)
                 }
@@ -276,9 +264,9 @@ struct DhikrCardView: View {
             // Dhikr text
             Text(dhikr.text)
                 .font(QiblatiTheme.arabicFont(size: 20))
-                .foregroundColor(.white)
+                .foregroundColor(QiblatiTheme.ivory)
                 .multilineTextAlignment(.trailing)
-                .lineSpacing(6)
+                .lineSpacing(7)
                 .frame(maxWidth: .infinity, alignment: .trailing)
 
             // Reference
@@ -295,7 +283,7 @@ struct DhikrCardView: View {
                     .padding(.top, 2)
             }
 
-            Divider().background(QiblatiTheme.gold.opacity(0.2))
+            Divider().background(QiblatiTheme.gold.opacity(0.15))
 
             // Counter
             HStack {
@@ -315,7 +303,7 @@ struct DhikrCardView: View {
                             }
                         }
                     } label: {
-                        HStack(spacing: 6) {
+                        HStack(spacing: 7) {
                             Image(systemName: completed ? "checkmark.circle.fill" : "plus.circle.fill")
                                 .font(.system(size: 16))
                             let formatter = NumberFormatter()
@@ -325,18 +313,39 @@ struct DhikrCardView: View {
                             Text("\(current) / \(total)")
                                 .font(QiblatiTheme.arabicFont(size: 15))
                         }
-                        .foregroundColor(completed ? .green : QiblatiTheme.gold)
+                        .foregroundColor(completed ? QiblatiTheme.qiblaGreen : QiblatiTheme.brightGold)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule(style: .continuous)
+                                .fill((completed ? QiblatiTheme.qiblaGreen : QiblatiTheme.gold).opacity(0.1))
+                                .overlay(
+                                    Capsule(style: .continuous)
+                                        .strokeBorder((completed ? QiblatiTheme.qiblaGreen : QiblatiTheme.gold).opacity(0.35), lineWidth: 0.8)
+                                )
+                        )
                     }
                     .buttonStyle(.plain)
                     .disabled(completed)
 
                     Spacer()
 
+                    // Progress bar
+                    GeometryReader { geo in
+                        ZStack(alignment: .trailing) {
+                            Capsule()
+                                .fill(QiblatiTheme.gold.opacity(0.12))
+                            Capsule()
+                                .fill(completed ? AnyShapeStyle(QiblatiTheme.qiblaGreen) : AnyShapeStyle(QiblatiTheme.goldGradient))
+                                .frame(width: geo.size.width * progress)
+                        }
+                    }
+                    .frame(width: 90, height: 5)
+
                     // Reset
-                    if currentCount > 0 {
+                    if currentCount > 0 && !completed {
                         Button {
                             currentCount = 0
-                            completed = false
                         } label: {
                             Image(systemName: "arrow.counterclockwise")
                                 .font(.system(size: 14))
@@ -357,15 +366,22 @@ struct DhikrCardView: View {
         }
         .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(QiblatiTheme.secondaryGreen.opacity(0.5))
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(QiblatiTheme.surfaceGradient)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 14)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .strokeBorder(
-                            completed ? Color.green.opacity(0.3) : QiblatiTheme.gold.opacity(0.15),
-                            lineWidth: 1
+                            completed ? QiblatiTheme.qiblaGreen.opacity(0.45) : QiblatiTheme.hairline,
+                            lineWidth: completed ? 1.2 : 0.8
                         )
                 )
+                .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 6)
         )
+        .animation(.easeInOut(duration: 0.3), value: completed)
+    }
+
+    private var progress: CGFloat {
+        guard dhikr.count > 0 else { return 0 }
+        return min(CGFloat(currentCount) / CGFloat(dhikr.count), 1.0)
     }
 }

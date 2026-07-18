@@ -10,17 +10,14 @@ struct SettingsView: View {
 
     var body: some View {
         ZStack {
-            RadialGradient(
-                colors: [QiblatiTheme.primaryGreen, QiblatiTheme.secondaryGreen],
-                center: .center, startRadius: 0, endRadius: 440
-            )
-            .ignoresSafeArea()
+            QiblatiTheme.backgroundGradient
+                .ignoresSafeArea()
 
             IslamicPatternBackground(opacity: 0.05)
                 .ignoresSafeArea()
 
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(spacing: 18) {
                     headerSection
 
                     // Dedication (moved up)
@@ -34,6 +31,7 @@ struct SettingsView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
+                .padding(.bottom, 100)
             }
             .overlay {
                 if showDedication {
@@ -44,18 +42,12 @@ struct SettingsView: View {
     }
 
     private var headerSection: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 6) {
             Text(s("الإعدادات", "Settings"))
                 .font(QiblatiTheme.titleFont(size: 36))
                 .foregroundStyle(QiblatiTheme.goldGradient)
 
-            HStack(spacing: 8) {
-                Rectangle().fill(QiblatiTheme.goldGradient).frame(height: 1)
-                EightPointedStar().fill(QiblatiTheme.goldGradient).frame(width: 10, height: 10)
-                Rectangle().fill(QiblatiTheme.goldGradient).frame(height: 1)
-            }
-            .padding(.horizontal, 40)
-            .opacity(0.7)
+            OrnamentalDivider(width: 200)
         }
     }
 
@@ -63,26 +55,32 @@ struct SettingsView: View {
         Button {
             showDedication = true
         } label: {
-            HStack {
-                Image(systemName: "heart.fill")
-                    .foregroundColor(QiblatiTheme.gold)
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(QiblatiTheme.gold.opacity(0.12))
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(QiblatiTheme.goldGradient)
+                }
+                .frame(width: 36, height: 36)
+
                 Spacer()
-                Text(s("عرض الإهداء", "View Dedication"))
-                    .font(QiblatiTheme.arabicFont(size: 16))
-                    .foregroundColor(QiblatiTheme.gold)
+
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(s("الإهداء", "Dedication"))
+                        .font(QiblatiTheme.arabicBoldFont(size: 16))
+                        .foregroundColor(QiblatiTheme.ivory.opacity(0.95))
+                    Text(s("صدقة جارية لروح حسنية ومحسن فوزي", "For the souls of Hasaneya & Mohsen Fawzy"))
+                        .font(QiblatiTheme.arabicFont(size: 12))
+                        .foregroundColor(QiblatiTheme.gold.opacity(0.6))
+                }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(QiblatiTheme.secondaryGreen.opacity(0.5))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .strokeBorder(QiblatiTheme.gold.opacity(0.2), lineWidth: 1)
-                    )
-            )
         }
         .buttonStyle(.plain)
+        .qiblatiCard(cornerRadius: 16)
     }
 
     private var preferencesSection: some View {
@@ -99,12 +97,12 @@ struct SettingsView: View {
                         } label: {
                             Text("عربي")
                                 .font(QiblatiTheme.arabicFont(size: 14))
-                                .foregroundColor(appLanguage == "ar" ? .white : QiblatiTheme.gold.opacity(0.6))
+                                .foregroundColor(appLanguage == "ar" ? QiblatiTheme.abyssGreen : QiblatiTheme.gold.opacity(0.6))
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(appLanguage == "ar" ? QiblatiTheme.gold.opacity(0.3) : Color.clear)
+                                    Capsule(style: .continuous)
+                                        .fill(appLanguage == "ar" ? AnyShapeStyle(QiblatiTheme.goldGradient) : AnyShapeStyle(Color.clear))
                                 )
                         }
                         .buttonStyle(.plain)
@@ -114,26 +112,31 @@ struct SettingsView: View {
                         } label: {
                             Text("English")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(appLanguage == "en" ? .white : QiblatiTheme.gold.opacity(0.6))
+                                .foregroundColor(appLanguage == "en" ? QiblatiTheme.abyssGreen : QiblatiTheme.gold.opacity(0.6))
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(appLanguage == "en" ? QiblatiTheme.gold.opacity(0.3) : Color.clear)
+                                    Capsule(style: .continuous)
+                                        .fill(appLanguage == "en" ? AnyShapeStyle(QiblatiTheme.goldGradient) : AnyShapeStyle(Color.clear))
                                 )
                         }
                         .buttonStyle(.plain)
                     }
+                    .padding(3)
                     .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .strokeBorder(QiblatiTheme.gold.opacity(0.2))
+                        Capsule(style: .continuous)
+                            .fill(QiblatiTheme.abyssGreen.opacity(0.5))
+                            .overlay(
+                                Capsule(style: .continuous)
+                                    .strokeBorder(QiblatiTheme.hairline, lineWidth: 0.8)
+                            )
                     )
 
                     Spacer()
 
                     Text(s("اللغة", "Language"))
                         .font(QiblatiTheme.arabicFont(size: 16))
-                        .foregroundColor(.white.opacity(0.9))
+                        .foregroundColor(QiblatiTheme.ivory.opacity(0.95))
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
@@ -145,21 +148,14 @@ struct SettingsView: View {
                         Spacer()
                         Text(s("الاهتزاز عند محاذاة القبلة", "Vibrate when facing Qibla"))
                             .font(QiblatiTheme.arabicFont(size: 16))
-                            .foregroundColor(.white.opacity(0.9))
+                            .foregroundColor(QiblatiTheme.ivory.opacity(0.95))
                     }
                 }
                 .tint(QiblatiTheme.gold)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(QiblatiTheme.secondaryGreen.opacity(0.5))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .strokeBorder(QiblatiTheme.gold.opacity(0.15), lineWidth: 1)
-                    )
-            )
+            .qiblatiCard(cornerRadius: 16)
         }
     }
 
@@ -178,7 +174,7 @@ struct SettingsView: View {
                     VStack(alignment: .trailing, spacing: 4) {
                         Text(s("تطبيق مجاني بلا إعلانات", "Free app, no ads"))
                             .font(QiblatiTheme.arabicFont(size: 15))
-                            .foregroundColor(.white.opacity(0.8))
+                            .foregroundColor(QiblatiTheme.ivory.opacity(0.85))
                         Text(s("صدقة جارية، نسأل الله القبول", "A sadaqah jariyah, may Allah accept it"))
                             .font(QiblatiTheme.arabicFont(size: 13))
                             .foregroundColor(QiblatiTheme.gold.opacity(0.6))
@@ -187,14 +183,7 @@ struct SettingsView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(QiblatiTheme.secondaryGreen.opacity(0.5))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .strokeBorder(QiblatiTheme.gold.opacity(0.15), lineWidth: 1)
-                    )
-            )
+            .qiblatiCard(cornerRadius: 16)
         }
         .padding(.bottom, 30)
     }
@@ -202,10 +191,16 @@ struct SettingsView: View {
     // MARK: - Helpers
 
     private func sectionTitle(_ text: String) -> some View {
-        Text(text)
-            .font(QiblatiTheme.arabicBoldFont(size: 16))
-            .foregroundColor(QiblatiTheme.gold)
-            .frame(maxWidth: .infinity, alignment: .trailing)
+        HStack(spacing: 8) {
+            EightPointedStar()
+                .fill(QiblatiTheme.goldVerticalGradient)
+                .frame(width: 8, height: 8)
+                .opacity(0.7)
+            Text(text)
+                .font(QiblatiTheme.arabicBoldFont(size: 16))
+                .foregroundColor(QiblatiTheme.gold)
+        }
+        .frame(maxWidth: .infinity, alignment: .trailing)
     }
 
     private func infoRow(label: String, value: String) -> some View {
@@ -216,7 +211,7 @@ struct SettingsView: View {
             Spacer()
             Text(label)
                 .font(QiblatiTheme.arabicFont(size: 15))
-                .foregroundColor(.white.opacity(0.8))
+                .foregroundColor(QiblatiTheme.ivory.opacity(0.85))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

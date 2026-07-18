@@ -8,7 +8,9 @@ struct ContentView: View {
     @State private var showDedication = false
     @State private var selectedTab: Tab = .compass
 
-    enum Tab: String {
+    @Namespace private var tabNamespace
+
+    enum Tab: String, CaseIterable {
         case compass, prayers, adhkar, tasbeeh, settings
     }
 
@@ -55,10 +57,13 @@ struct ContentView: View {
                     SettingsView()
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             customTabBar
         }
     }
+
+    // MARK: - Floating Tab Bar
 
     private var customTabBar: some View {
         HStack(spacing: 0) {
@@ -68,43 +73,47 @@ struct ContentView: View {
             tabItem(tab: .tasbeeh, icon: "circle.dotted", label: lang == "en" ? "Tasbeeh" : "المسبحة")
             tabItem(tab: .settings, icon: "gearshape.fill", label: lang == "en" ? "Settings" : "الإعدادات")
         }
-        .padding(.horizontal, 8)
-        .padding(.top, 10)
-        .padding(.bottom, 6)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 8)
         .background(
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .environment(\.colorScheme, .dark)
+            Capsule(style: .continuous)
+                .fill(QiblatiTheme.abyssGreen.opacity(0.92))
                 .overlay(
-                    Rectangle()
-                        .fill(QiblatiTheme.secondaryGreen.opacity(0.7))
+                    Capsule(style: .continuous)
+                        .strokeBorder(QiblatiTheme.gold.opacity(0.3), lineWidth: 0.8)
                 )
-                .overlay(alignment: .top) {
-                    Rectangle()
-                        .fill(QiblatiTheme.gold.opacity(0.2))
-                        .frame(height: 0.5)
-                }
+                .shadow(color: .black.opacity(0.5), radius: 18, x: 0, y: 8)
+                .shadow(color: QiblatiTheme.gold.opacity(0.12), radius: 12, x: 0, y: 2)
         )
-        .ignoresSafeArea(.container, edges: .bottom)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 10)
     }
 
     private func tabItem(tab: Tab, icon: String, label: String) -> some View {
         let isSelected = selectedTab == tab
         return Button {
-            withAnimation(.easeInOut(duration: 0.15)) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.72)) {
                 selectedTab = tab
             }
         } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: 3) {
                 Image(systemName: icon)
-                    .font(.system(size: 20))
-                    .foregroundColor(isSelected ? QiblatiTheme.brightGold : QiblatiTheme.gold.opacity(0.4))
+                    .font(.system(size: 17, weight: .semibold))
                 Text(label)
                     .font(QiblatiTheme.arabicFont(size: 10))
-                    .foregroundColor(isSelected ? QiblatiTheme.brightGold : QiblatiTheme.gold.opacity(0.4))
             }
+            .foregroundColor(isSelected ? QiblatiTheme.abyssGreen : QiblatiTheme.gold.opacity(0.55))
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 4)
+            .padding(.vertical, 8)
+            .background {
+                if isSelected {
+                    Capsule(style: .continuous)
+                        .fill(QiblatiTheme.goldGradient)
+                        .shadow(color: QiblatiTheme.gold.opacity(0.45), radius: 8, x: 0, y: 2)
+                        .matchedGeometryEffect(id: "tabPill", in: tabNamespace)
+                }
+            }
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

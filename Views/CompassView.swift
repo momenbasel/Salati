@@ -14,19 +14,14 @@ struct CompassView: View {
     // Pulse ring animation
     @State private var isPulsing = false
 
+    // Ambient breathing halo
+    @State private var haloBreathing = false
+
     var body: some View {
         ZStack {
             // ── Background: deep emerald radial gradient ───────────────────
-            RadialGradient(
-                colors: [
-                    QiblatiTheme.primaryGreen,
-                    QiblatiTheme.secondaryGreen,
-                ],
-                center: .center,
-                startRadius: 0,
-                endRadius: 440
-            )
-            .ignoresSafeArea()
+            QiblatiTheme.backgroundGradient
+                .ignoresSafeArea()
 
             // ── Tessellated Islamic pattern overlay ────────────────────────
             IslamicPatternBackground(opacity: 0.07)
@@ -60,10 +55,11 @@ struct CompassView: View {
     // MARK: - Subviews
 
     private var titleSection: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 6) {
             Text("صلاتي")
                 .font(QiblatiTheme.titleFont(size: 52))
                 .foregroundStyle(QiblatiTheme.goldGradient)
+                .goldShimmer()
                 .shadow(color: QiblatiTheme.gold.opacity(0.55), radius: 10, x: 0, y: 2)
                 .offset(y: titleAppeared ? 0 : -30)
                 .opacity(titleAppeared ? 1.0 : 0)
@@ -73,26 +69,31 @@ struct CompassView: View {
                     }
                 }
 
-            // Decorative separator
-            HStack(spacing: 8) {
-                Rectangle()
-                    .fill(QiblatiTheme.goldGradient)
-                    .frame(height: 1)
-                EightPointedStar()
-                    .fill(QiblatiTheme.goldGradient)
-                    .frame(width: 10, height: 10)
-                Rectangle()
-                    .fill(QiblatiTheme.goldGradient)
-                    .frame(height: 1)
-            }
-            .padding(.horizontal, 40)
-            .opacity(0.7)
+            OrnamentalDivider(width: 200)
         }
         .padding(.top, 8)
     }
 
     private var compassSection: some View {
         ZStack {
+            // ── Ambient breathing halo ─────────────────────────────────────
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            (locationManager.isOnQibla ? QiblatiTheme.qiblaGreen : QiblatiTheme.gold).opacity(haloBreathing ? 0.22 : 0.1),
+                            .clear,
+                        ],
+                        center: .center,
+                        startRadius: 90,
+                        endRadius: 210
+                    )
+                )
+                .frame(width: 420, height: 420)
+                .animation(.easeInOut(duration: 2.4).repeatForever(autoreverses: true), value: haloBreathing)
+                .animation(.easeInOut(duration: 0.6), value: locationManager.isOnQibla)
+                .onAppear { haloBreathing = true }
+
             // ── Static ring: N always at top, never rotates ───────────────
             CompassRingView(heading: 0)
                 .frame(width: 290, height: 290)
@@ -108,10 +109,10 @@ struct CompassView: View {
             // ── "On Qibla" alignment pulse ring ───────────────────────────
             if locationManager.isOnQibla {
                 Circle()
-                    .stroke(Color.green.opacity(0.3), lineWidth: 3)
+                    .stroke(QiblatiTheme.qiblaGreen.opacity(0.35), lineWidth: 3)
                     .frame(width: 280, height: 280)
-                    .scaleEffect(isPulsing ? 1.08 : 1.0)
-                    .opacity(isPulsing ? 0.0 : 0.5)
+                    .scaleEffect(isPulsing ? 1.1 : 1.0)
+                    .opacity(isPulsing ? 0.0 : 0.6)
                     .animation(.easeOut(duration: 1.2).repeatForever(autoreverses: false), value: isPulsing)
                     .onAppear { isPulsing = true }
                     .onDisappear { isPulsing = false }
@@ -132,8 +133,8 @@ struct CompassView: View {
         let isGreen = locationManager.isOnQibla
         let arrowGradient = LinearGradient(
             colors: isGreen
-                ? [Color.green, Color.green.opacity(0.7)]
-                : [Color(red: 0.85, green: 0.2, blue: 0.2), Color(red: 0.7, green: 0.15, blue: 0.15)],
+                ? [QiblatiTheme.qiblaGreen, QiblatiTheme.qiblaGreen.opacity(0.7)]
+                : [Color(red: 0.92, green: 0.28, blue: 0.25), Color(red: 0.72, green: 0.15, blue: 0.15)],
             startPoint: .top, endPoint: .bottom
         )
         return ZStack {
@@ -142,29 +143,40 @@ struct CompassView: View {
                 QiblaArrowHead()
                     .fill(arrowGradient)
                     .frame(width: 22, height: 18)
-                    .shadow(color: isGreen ? .green.opacity(0.6) : .red.opacity(0.4),
+                    .shadow(color: isGreen ? QiblatiTheme.qiblaGreen.opacity(0.7) : .red.opacity(0.4),
                             radius: isGreen ? 10 : 4)
-                Rectangle()
+                Capsule()
                     .fill(arrowGradient)
-                    .frame(width: 4, height: 75)
-                    .shadow(color: isGreen ? .green.opacity(0.3) : .red.opacity(0.2), radius: 3)
+                    .frame(width: 4.5, height: 78)
+                    .shadow(color: isGreen ? QiblatiTheme.qiblaGreen.opacity(0.35) : .red.opacity(0.2), radius: 3)
             }
-            .offset(y: -(75 + 18) / 2)  // bottom of shaft sits at y=0 (center)
+            .offset(y: -(78 + 18) / 2)  // bottom of shaft sits at y=0 (center)
 
-            // Center dot
-            Circle()
-                .fill(isGreen ? Color.green : Color(red: 0.85, green: 0.2, blue: 0.2))
-                .frame(width: 10, height: 10)
-                .shadow(color: isGreen ? .green.opacity(0.5) : .red.opacity(0.3), radius: 4)
+            // Center jewel
+            ZStack {
+                Circle()
+                    .fill(QiblatiTheme.goldVerticalGradient)
+                    .frame(width: 16, height: 16)
+                    .shadow(color: QiblatiTheme.gold.opacity(0.5), radius: 4)
+                Circle()
+                    .fill(isGreen ? QiblatiTheme.qiblaGreen : Color(red: 0.92, green: 0.28, blue: 0.25))
+                    .frame(width: 7, height: 7)
+            }
 
-            // Thin tail (opposite direction)
-            Rectangle()
-                .fill(LinearGradient(
-                    colors: [QiblatiTheme.gold.opacity(0.35), QiblatiTheme.gold.opacity(0.05)],
-                    startPoint: .top, endPoint: .bottom
-                ))
-                .frame(width: 2, height: 55)
-                .offset(y: 33)
+            // Gold counterweight tail (opposite direction)
+            VStack(spacing: 0) {
+                Capsule()
+                    .fill(LinearGradient(
+                        colors: [QiblatiTheme.gold.opacity(0.7), QiblatiTheme.gold.opacity(0.05)],
+                        startPoint: .top, endPoint: .bottom
+                    ))
+                    .frame(width: 2.5, height: 52)
+                EightPointedStar()
+                    .fill(QiblatiTheme.goldGradient)
+                    .frame(width: 9, height: 9)
+                    .opacity(0.8)
+            }
+            .offset(y: 30)
         }
         .rotationEffect(.degrees(locationManager.heading), anchor: .center)
         .animation(.easeOut(duration: 0.15), value: locationManager.heading)
@@ -185,17 +197,13 @@ struct CompassView: View {
 
     private var directionGuidanceColor: Color {
         let absAngle = abs(locationManager.qiblaDirection)
-        if absAngle <= 3 { return .green }
+        if absAngle <= 3 { return QiblatiTheme.qiblaGreen }
         if absAngle <= 15 { return .orange }
-        return QiblatiTheme.gold.opacity(0.7)
+        return QiblatiTheme.gold.opacity(0.75)
     }
 
     private var bottomSection: some View {
-        VStack(spacing: 8) {
-            Divider()
-                .background(QiblatiTheme.gold.opacity(0.3))
-                .padding(.horizontal, 60)
-
+        VStack(spacing: 10) {
             if locationManager.authorizationStatus == .denied
                 || locationManager.authorizationStatus == .restricted {
                 Text(s("يرجى تفعيل خدمات الموقع في الإعدادات", "Please enable location services in Settings"))
@@ -208,6 +216,15 @@ struct CompassView: View {
                     .foregroundColor(QiblatiTheme.gold.opacity(0.8))
                     .multilineTextAlignment(.center)
             } else if locationManager.distanceToKaaba > 0 {
+                // Alignment celebration
+                if locationManager.isOnQibla {
+                    Text("اللَّهُ أَكْبَرُ")
+                        .font(QiblatiTheme.titleFont(size: 28))
+                        .foregroundColor(QiblatiTheme.qiblaGreen)
+                        .shadow(color: QiblatiTheme.qiblaGreen.opacity(0.6), radius: 8)
+                        .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                }
+
                 // Directional guidance
                 Text(directionGuidanceText)
                     .font(QiblatiTheme.arabicBoldFont(size: 16))
@@ -215,33 +232,44 @@ struct CompassView: View {
                     .multilineTextAlignment(.center)
                     .id(directionGuidanceText)
 
-                // Alignment celebration
-                if locationManager.isOnQibla {
-                    Text("اللَّهُ أَكْبَرُ")
-                        .font(QiblatiTheme.titleFont(size: 28))
-                        .foregroundColor(.green)
-                        .shadow(color: Color.green.opacity(0.6), radius: 8)
-                        .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                // Distance panel
+                HStack(spacing: 10) {
+                    Image(systemName: "mappin.and.ellipse")
+                        .font(.system(size: 13))
+                        .foregroundStyle(QiblatiTheme.goldGradient)
+
+                    Text(s("المسافة إلى مكة المكرمة", "Distance to Mecca"))
+                        .font(QiblatiTheme.arabicFont(size: 13))
+                        .foregroundColor(QiblatiTheme.gold.opacity(0.6))
+
+                    Text(QiblaCalculator.formattedDistance(locationManager.distanceToKaaba))
+                        .font(QiblatiTheme.arabicBoldFont(size: 16))
+                        .foregroundStyle(QiblatiTheme.goldGradient)
                 }
-
-                // Distance
-                Text(s("المسافة إلى مكة المكرمة", "Distance to Mecca"))
-                    .font(QiblatiTheme.arabicFont(size: 12))
-                    .foregroundColor(QiblatiTheme.gold.opacity(0.55))
-
-                Text(QiblaCalculator.formattedDistance(locationManager.distanceToKaaba))
-                    .font(QiblatiTheme.arabicBoldFont(size: 18))
-                    .foregroundStyle(QiblatiTheme.goldGradient)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 10)
+                .background(
+                    Capsule(style: .continuous)
+                        .fill(QiblatiTheme.abyssGreen.opacity(0.55))
+                        .overlay(
+                            Capsule(style: .continuous)
+                                .strokeBorder(QiblatiTheme.hairline, lineWidth: 0.8)
+                        )
+                )
             } else {
-                Text(s("جارٍ تحديد موقعك...", "Locating you..."))
-                    .font(QiblatiTheme.arabicFont(size: 15))
-                    .foregroundColor(QiblatiTheme.gold.opacity(0.7))
+                HStack(spacing: 8) {
+                    ProgressView()
+                        .tint(QiblatiTheme.gold)
+                    Text(s("جارٍ تحديد موقعك...", "Locating you..."))
+                        .font(QiblatiTheme.arabicFont(size: 15))
+                        .foregroundColor(QiblatiTheme.gold.opacity(0.7))
+                }
             }
         }
         .animation(.easeInOut(duration: 0.4), value: locationManager.isOnQibla)
         .animation(.easeInOut(duration: 0.3), value: directionGuidanceText)
         .animation(.easeIn(duration: 0.5), value: locationManager.distanceToKaaba > 0)
-        .padding(.bottom, 12)
+        .padding(.bottom, 90)
     }
 }
 

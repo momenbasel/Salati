@@ -12,28 +12,27 @@ struct PrayerTimesView: View {
 
     @State private var currentTime = Date()
     @State private var showNotificationPrompt = false
+    @State private var heroGlow = false
 
     private let timer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
     var body: some View {
         ZStack {
-            RadialGradient(
-                colors: [QiblatiTheme.primaryGreen, QiblatiTheme.secondaryGreen],
-                center: .center, startRadius: 0, endRadius: 440
-            )
-            .ignoresSafeArea()
+            QiblatiTheme.backgroundGradient
+                .ignoresSafeArea()
 
             IslamicPatternBackground(opacity: 0.05)
                 .ignoresSafeArea()
 
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(spacing: 18) {
                     headerSection
 
                     if let times = prayerService.prayerTimes {
                         // Next prayer highlight
                         if let next = times.nextPrayer() {
                             nextPrayerCard(name: next.name, time: next.time)
+                                .transition(.opacity.combined(with: .scale(scale: 0.96)))
                         }
 
                         // All prayer times
@@ -41,9 +40,24 @@ struct PrayerTimesView: View {
 
                         // Hijri date from API
                         if !times.hijriDate.isEmpty {
-                            Text(times.hijriDate)
-                                .font(QiblatiTheme.arabicFont(size: 16))
-                                .foregroundColor(QiblatiTheme.gold.opacity(0.8))
+                            HStack(spacing: 8) {
+                                Image(systemName: "moon.stars.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(QiblatiTheme.goldGradient)
+                                Text(times.hijriDate)
+                                    .font(QiblatiTheme.arabicFont(size: 15))
+                                    .foregroundColor(QiblatiTheme.gold.opacity(0.85))
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(
+                                Capsule(style: .continuous)
+                                    .fill(QiblatiTheme.abyssGreen.opacity(0.5))
+                                    .overlay(
+                                        Capsule(style: .continuous)
+                                            .strokeBorder(QiblatiTheme.hairline, lineWidth: 0.8)
+                                    )
+                            )
                         }
                     } else if prayerService.isLoading {
                         loadingSection
@@ -58,7 +72,7 @@ struct PrayerTimesView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
-                .padding(.bottom, 60)
+                .padding(.bottom, 110)
             }
         }
         .onAppear { fetchTimes() }
@@ -82,18 +96,12 @@ struct PrayerTimesView: View {
     // MARK: - Subviews
 
     private var headerSection: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 6) {
             Text(s("مواقيت الصلاة", "Prayer Times"))
                 .font(QiblatiTheme.titleFont(size: 36))
                 .foregroundStyle(QiblatiTheme.goldGradient)
 
-            HStack(spacing: 8) {
-                Rectangle().fill(QiblatiTheme.goldGradient).frame(height: 1)
-                EightPointedStar().fill(QiblatiTheme.goldGradient).frame(width: 10, height: 10)
-                Rectangle().fill(QiblatiTheme.goldGradient).frame(height: 1)
-            }
-            .padding(.horizontal, 40)
-            .opacity(0.7)
+            OrnamentalDivider(width: 200)
 
             Text(formattedDate())
                 .font(QiblatiTheme.arabicFont(size: 14))
@@ -102,79 +110,116 @@ struct PrayerTimesView: View {
     }
 
     private func nextPrayerCard(name: String, time: Date) -> some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 10) {
             Text(s("الصلاة القادمة", "Next Prayer"))
                 .font(QiblatiTheme.arabicFont(size: 13))
-                .foregroundColor(QiblatiTheme.gold.opacity(0.7))
+                .foregroundColor(QiblatiTheme.gold.opacity(0.65))
 
             Text(name)
-                .font(QiblatiTheme.titleFont(size: 32))
+                .font(QiblatiTheme.titleFont(size: 34))
                 .foregroundStyle(QiblatiTheme.goldGradient)
+                .goldShimmer()
+                .shadow(color: QiblatiTheme.gold.opacity(0.35), radius: 8)
 
             Text(formatTime(time))
-                .font(QiblatiTheme.arabicBoldFont(size: 28))
-                .foregroundColor(.white)
+                .font(QiblatiTheme.arabicBoldFont(size: 30))
+                .foregroundColor(QiblatiTheme.ivory)
 
-            Text(countdownText(to: time))
-                .font(QiblatiTheme.arabicFont(size: 16))
-                .foregroundColor(QiblatiTheme.gold.opacity(0.8))
+            // Countdown pill
+            HStack(spacing: 6) {
+                Image(systemName: "hourglass")
+                    .font(.system(size: 11))
+                Text(countdownText(to: time))
+                    .font(QiblatiTheme.arabicFont(size: 15))
+            }
+            .foregroundColor(QiblatiTheme.brightGold)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(QiblatiTheme.gold.opacity(0.12))
+                    .overlay(
+                        Capsule(style: .continuous)
+                            .strokeBorder(QiblatiTheme.gold.opacity(0.35), lineWidth: 0.8)
+                    )
+            )
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
+        .padding(.vertical, 24)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(QiblatiTheme.secondaryGreen.opacity(0.6))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(QiblatiTheme.gold.opacity(0.3), lineWidth: 1)
-                )
+            ZStack {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(QiblatiTheme.surfaceGradient)
+
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(
+                        QiblatiTheme.gold.opacity(heroGlow ? 0.55 : 0.25),
+                        lineWidth: 1.2
+                    )
+                    .shadow(color: QiblatiTheme.gold.opacity(heroGlow ? 0.3 : 0.08), radius: heroGlow ? 14 : 6)
+                    .animation(.easeInOut(duration: 2.2).repeatForever(autoreverses: true), value: heroGlow)
+                    .onAppear { heroGlow = true }
+
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(QiblatiTheme.gold.opacity(0.15), lineWidth: 0.6)
+                    .padding(5)
+            }
+            .shadow(color: Color.black.opacity(0.4), radius: 16, x: 0, y: 10)
         )
     }
 
     private func prayerListSection(times: PrayerTimesService.PrayerTimes) -> some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 0) {
             ForEach(Array(times.all.enumerated()), id: \.offset) { index, prayer in
                 let isNext = times.nextPrayer()?.name == prayer.name
                 let isPassed = prayer.time <= currentTime
 
-                HStack {
-                    Image(systemName: prayer.icon)
-                        .font(.system(size: 18))
-                        .foregroundColor(isNext ? .white : QiblatiTheme.gold.opacity(isPassed ? 0.4 : 0.8))
-                        .frame(width: 30)
+                HStack(spacing: 12) {
+                    // Icon medallion
+                    ZStack {
+                        Circle()
+                            .fill(isNext ? QiblatiTheme.gold.opacity(0.25) : QiblatiTheme.gold.opacity(isPassed ? 0.05 : 0.1))
+                        Image(systemName: prayer.icon)
+                            .font(.system(size: 14))
+                            .foregroundColor(isNext ? QiblatiTheme.paleGold : QiblatiTheme.gold.opacity(isPassed ? 0.35 : 0.75))
+                    }
+                    .frame(width: 34, height: 34)
 
                     Text(prayer.name)
                         .font(QiblatiTheme.arabicBoldFont(size: 18))
-                        .foregroundColor(isNext ? .white : (isPassed ? QiblatiTheme.gold.opacity(0.4) : QiblatiTheme.gold))
+                        .foregroundColor(isNext ? QiblatiTheme.ivory : (isPassed ? QiblatiTheme.gold.opacity(0.35) : QiblatiTheme.gold))
+
+                    if isNext {
+                        Text(s("القادمة", "Next"))
+                            .font(QiblatiTheme.arabicFont(size: 11))
+                            .foregroundColor(QiblatiTheme.abyssGreen)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(Capsule().fill(QiblatiTheme.goldGradient))
+                    }
 
                     Spacer()
 
                     Text(formatTime(prayer.time))
                         .font(QiblatiTheme.arabicFont(size: 18))
-                        .foregroundColor(isNext ? .white : (isPassed ? QiblatiTheme.gold.opacity(0.4) : .white.opacity(0.9)))
+                        .foregroundColor(isNext ? QiblatiTheme.ivory : (isPassed ? QiblatiTheme.gold.opacity(0.35) : QiblatiTheme.ivory.opacity(0.9)))
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
                 .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(isNext ? QiblatiTheme.gold.opacity(0.2) : Color.clear)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .strokeBorder(isNext ? QiblatiTheme.gold.opacity(0.4) : Color.clear, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(isNext ? QiblatiTheme.gold.opacity(0.12) : Color.clear)
                 )
 
                 if index < times.all.count - 1 {
                     Divider()
-                        .background(QiblatiTheme.gold.opacity(0.15))
+                        .background(QiblatiTheme.gold.opacity(0.12))
                         .padding(.horizontal, 16)
                 }
             }
         }
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(QiblatiTheme.secondaryGreen.opacity(0.4))
-        )
+        .padding(.vertical, 6)
+        .qiblatiCard(cornerRadius: 18)
     }
 
     private var loadingSection: some View {
@@ -201,12 +246,12 @@ struct PrayerTimesView: View {
             } label: {
                 Text(s("إعادة المحاولة", "Retry"))
                     .font(QiblatiTheme.arabicFont(size: 14))
-                    .foregroundColor(QiblatiTheme.gold)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 8)
+                    .foregroundColor(QiblatiTheme.brightGold)
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 9)
                     .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .strokeBorder(QiblatiTheme.gold.opacity(0.3))
+                        Capsule(style: .continuous)
+                            .strokeBorder(QiblatiTheme.gold.opacity(0.4), lineWidth: 1)
                     )
             }
         }
@@ -226,12 +271,22 @@ struct PrayerTimesView: View {
                     }
                 }
             )) {
-                HStack {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(QiblatiTheme.gold.opacity(notificationsEnabled ? 0.2 : 0.08))
+                        Image(systemName: notificationsEnabled ? "bell.fill" : "bell")
+                            .font(.system(size: 14))
+                            .foregroundColor(QiblatiTheme.gold.opacity(notificationsEnabled ? 1 : 0.6))
+                    }
+                    .frame(width: 34, height: 34)
+
                     Spacer()
+
                     VStack(alignment: .trailing, spacing: 2) {
                         Text(s("تنبيهات مواقيت الصلاة", "Prayer Time Notifications"))
                             .font(QiblatiTheme.arabicFont(size: 16))
-                            .foregroundColor(.white.opacity(0.9))
+                            .foregroundColor(QiblatiTheme.ivory.opacity(0.95))
                         Text(s("إشعار عند دخول وقت كل صلاة", "Notify when each prayer time begins"))
                             .font(QiblatiTheme.arabicFont(size: 12))
                             .foregroundColor(QiblatiTheme.gold.opacity(0.6))
@@ -240,16 +295,9 @@ struct PrayerTimesView: View {
             }
             .tint(QiblatiTheme.gold)
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.vertical, 14)
         }
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(QiblatiTheme.secondaryGreen.opacity(0.4))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .strokeBorder(QiblatiTheme.gold.opacity(0.15), lineWidth: 1)
-                )
-        )
+        .qiblatiCard(cornerRadius: 18)
     }
 
     // MARK: - Helpers
